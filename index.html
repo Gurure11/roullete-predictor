@@ -243,24 +243,35 @@ function applyRoleVisibility(){
   document.querySelectorAll('.reviewOnly').forEach(el=>el.classList.toggle('hide',!showReview));
   if(!showReview && (document.getElementById('review1')?.classList.contains('on') || document.getElementById('review2')?.classList.contains('on'))){showTab('task');}
 }
+function assignedToCurrentUser(t){
+  const uid=String(USER?.UserID||'').trim();
+  const name=String(USER?.Name||'').trim().toLowerCase();
+  const email=String(USER?.Email||'').trim().toLowerCase();
+  return (
+    (uid && String(t.AssignedToUserID||'').trim()===uid) ||
+    (name && String(t.AssignedToName||'').trim().toLowerCase()===name) ||
+    (email && String(t.AssignedToEmail||'').trim().toLowerCase()===email)
+  );
+}
+function isOpenTicket(t){return String(t.Status||'')!=='Closed' && String(t.CurrentBasket||'')!=='Closed';}
 function myTickets(){
   const tickets=STATE.tickets||[];
   if(isExecutiveUser()){
-    return tickets.filter(t=>String(t.CreatedByUserID)===String(USER.UserID) && String(t.AssignedToUserID)!==String(USER.UserID) && t.Status!=='Closed');
+    return tickets.filter(t=>String(t.CreatedByUserID)===String(USER.UserID) && String(t.AssignedToUserID)!==String(USER.UserID) && isOpenTicket(t));
   }
-  return tickets.filter(t=>String(t.AssignedToUserID)===String(USER.UserID) && t.Status!=='Closed');
+  return tickets.filter(t=>assignedToCurrentUser(t) && isOpenTicket(t));
 }
 function isLate(t){return String(t.TimeRemainingText||'').toLowerCase().includes('late') || String(t.ClosedTiming||'').toLowerCase().includes('late');}
 function isOpenOnTime(t){return t.Status!=='Closed' && !isLate(t) && (t.CurrentBasket==='Assignee'||t.Status==='Open');}
 function filterTickets(kind){
   const tickets=STATE.tickets||[];
-  if(kind==='critical') return tickets.filter(t=>String(t.Priority)==='Critical' && t.Status!=='Closed' && (isExecutiveUser() || String(t.AssignedToUserID)===String(USER.UserID)));
-  if(kind==='openOnTime') return tickets.filter(t=>isOpenOnTime(t) && (isExecutiveUser() || String(t.AssignedToUserID)===String(USER.UserID)));
-  if(kind==='openLate') return tickets.filter(t=>t.Status!=='Closed' && isLate(t) && (isExecutiveUser() || String(t.AssignedToUserID)===String(USER.UserID)));
+  if(kind==='critical') return tickets.filter(t=>String(t.Priority)==='Critical' && isOpenTicket(t) && (isExecutiveUser() || assignedToCurrentUser(t)));
+  if(kind==='openOnTime') return tickets.filter(t=>isOpenOnTime(t) && (isExecutiveUser() || assignedToCurrentUser(t)));
+  if(kind==='openLate') return tickets.filter(t=>isOpenTicket(t) && isLate(t) && (isExecutiveUser() || assignedToCurrentUser(t)));
   if(kind==='review1') return isReviewAllowed('review1') ? tickets.filter(t=>t.CurrentBasket==='Executive1') : [];
   if(kind==='review2') return isReviewAllowed('review2') ? tickets.filter(t=>t.CurrentBasket==='Executive2'||t.CurrentBasket==='HiringApprovalExecutive2') : [];
   if(kind==='closed') return tickets.filter(t=>t.Status==='Closed' || t.CurrentBasket==='Closed');
-  if(kind==='assigned') return tickets.filter(t=>t.CurrentBasket==='Assignee' && t.Status!=='Closed' && (isExecutiveUser() || String(t.AssignedToUserID)===String(USER.UserID)));
+  if(kind==='assigned') return tickets.filter(t=>t.CurrentBasket==='Assignee' && isOpenTicket(t) && (isExecutiveUser() || assignedToCurrentUser(t)));
   return myTickets();
 }
 function openTicketWindow(kind){
@@ -383,21 +394,10 @@ async function uploadFileChunked(file, ticketId, comment){
 
 async function submitTicket(){
   const f=document.getElementById('fileUp')?.files?.[0];
-  const comment=commentTxt?.value||'';
   try{
-    // Submit first so the clock stops and the ticket always moves to Executive1,
-    // even if the optional document upload has a Drive/deployment problem.
-    await postApi('submitTicket',{userId:USER.UserID,ticketId:DETAIL.ticket.TicketID,comment:comment});
-    let uploadMsg='';
-    if(f){
-      try{
-        await uploadFileChunked(f, DETAIL.ticket.TicketID, comment);
-        uploadMsg=' Attachment uploaded and linked.';
-      }catch(upErr){
-        uploadMsg=' Ticket was submitted, but the attachment upload failed: '+(upErr.message||upErr);
-      }
-    }
-    alert('Ticket submitted to Executive1 successfully. Status is now Submitted and the clock has stopped.'+uploadMsg);
+    if(f) await uploadFileChunked(f, DETAIL.ticket.TicketID, commentTxt?.value||'');
+    await postApi('submitTicket',{userId:USER.UserID,ticketId:DETAIL.ticket.TicketID,comment:commentTxt?.value||''});
+    alert('Ticket submitted to Executive1 successfully. Clock stopped, system score captured, and attachment link posted where applicable.');
     refresh();
     openTicket(DETAIL.ticket.TicketID);
   }catch(e){alertErr(e);}
