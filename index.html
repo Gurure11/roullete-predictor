@@ -124,7 +124,7 @@
 
 <script>
 // Replace this with your deployed Apps Script Web App URL.
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycJib8_w2gXQ2BKCEkOqCbAilDZYSZL47IqeIFQf6Tl2eFN15p-iEk1wGKTNT6TV8q/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRwXCQykWOl2hyngUmr97UtiXyo4nO5VFgdPfrjpCEW7QDyNkUG3-1f15ZOq5reXrV/exec';
 let USER = JSON.parse(localStorage.getItem('ob_user') || 'null');
 let STATE = {tickets:[], users:[], referenceData:[], summary:{}};
 let CURRENT_FILTER = 'all';
@@ -243,35 +243,24 @@ function applyRoleVisibility(){
   document.querySelectorAll('.reviewOnly').forEach(el=>el.classList.toggle('hide',!showReview));
   if(!showReview && (document.getElementById('review1')?.classList.contains('on') || document.getElementById('review2')?.classList.contains('on'))){showTab('task');}
 }
-function assignedToCurrentUser(t){
-  const uid=String(USER?.UserID||'').trim();
-  const name=String(USER?.Name||'').trim().toLowerCase();
-  const email=String(USER?.Email||'').trim().toLowerCase();
-  return (
-    (uid && String(t.AssignedToUserID||'').trim()===uid) ||
-    (name && String(t.AssignedToName||'').trim().toLowerCase()===name) ||
-    (email && String(t.AssignedToEmail||'').trim().toLowerCase()===email)
-  );
-}
-function isOpenTicket(t){return String(t.Status||'')!=='Closed' && String(t.CurrentBasket||'')!=='Closed';}
 function myTickets(){
   const tickets=STATE.tickets||[];
   if(isExecutiveUser()){
-    return tickets.filter(t=>String(t.CreatedByUserID)===String(USER.UserID) && String(t.AssignedToUserID)!==String(USER.UserID) && isOpenTicket(t));
+    return tickets.filter(t=>String(t.CreatedByUserID)===String(USER.UserID) && String(t.AssignedToUserID)!==String(USER.UserID) && t.Status!=='Closed');
   }
-  return tickets.filter(t=>assignedToCurrentUser(t) && isOpenTicket(t));
+  return tickets.filter(t=>String(t.AssignedToUserID)===String(USER.UserID) && t.Status!=='Closed');
 }
 function isLate(t){return String(t.TimeRemainingText||'').toLowerCase().includes('late') || String(t.ClosedTiming||'').toLowerCase().includes('late');}
 function isOpenOnTime(t){return t.Status!=='Closed' && !isLate(t) && (t.CurrentBasket==='Assignee'||t.Status==='Open');}
 function filterTickets(kind){
   const tickets=STATE.tickets||[];
-  if(kind==='critical') return tickets.filter(t=>String(t.Priority)==='Critical' && isOpenTicket(t) && (isExecutiveUser() || assignedToCurrentUser(t)));
-  if(kind==='openOnTime') return tickets.filter(t=>isOpenOnTime(t) && (isExecutiveUser() || assignedToCurrentUser(t)));
-  if(kind==='openLate') return tickets.filter(t=>isOpenTicket(t) && isLate(t) && (isExecutiveUser() || assignedToCurrentUser(t)));
+  if(kind==='critical') return tickets.filter(t=>String(t.Priority)==='Critical' && t.Status!=='Closed' && (isExecutiveUser() || String(t.AssignedToUserID)===String(USER.UserID)));
+  if(kind==='openOnTime') return tickets.filter(t=>isOpenOnTime(t) && (isExecutiveUser() || String(t.AssignedToUserID)===String(USER.UserID)));
+  if(kind==='openLate') return tickets.filter(t=>t.Status!=='Closed' && isLate(t) && (isExecutiveUser() || String(t.AssignedToUserID)===String(USER.UserID)));
   if(kind==='review1') return isReviewAllowed('review1') ? tickets.filter(t=>t.CurrentBasket==='Executive1') : [];
   if(kind==='review2') return isReviewAllowed('review2') ? tickets.filter(t=>t.CurrentBasket==='Executive2'||t.CurrentBasket==='HiringApprovalExecutive2') : [];
   if(kind==='closed') return tickets.filter(t=>t.Status==='Closed' || t.CurrentBasket==='Closed');
-  if(kind==='assigned') return tickets.filter(t=>t.CurrentBasket==='Assignee' && isOpenTicket(t) && (isExecutiveUser() || assignedToCurrentUser(t)));
+  if(kind==='assigned') return tickets.filter(t=>t.CurrentBasket==='Assignee' && t.Status!=='Closed' && (isExecutiveUser() || String(t.AssignedToUserID)===String(USER.UserID)));
   return myTickets();
 }
 function openTicketWindow(kind){
