@@ -383,10 +383,21 @@ async function uploadFileChunked(file, ticketId, comment){
 
 async function submitTicket(){
   const f=document.getElementById('fileUp')?.files?.[0];
+  const comment=commentTxt?.value||'';
   try{
-    if(f) await uploadFileChunked(f, DETAIL.ticket.TicketID, commentTxt?.value||'');
-    await postApi('submitTicket',{userId:USER.UserID,ticketId:DETAIL.ticket.TicketID,comment:commentTxt?.value||''});
-    alert('Ticket submitted to Executive1 successfully. Clock stopped, system score captured, and attachment link posted where applicable.');
+    // Submit first so the clock stops and the ticket always moves to Executive1,
+    // even if the optional document upload has a Drive/deployment problem.
+    await postApi('submitTicket',{userId:USER.UserID,ticketId:DETAIL.ticket.TicketID,comment:comment});
+    let uploadMsg='';
+    if(f){
+      try{
+        await uploadFileChunked(f, DETAIL.ticket.TicketID, comment);
+        uploadMsg=' Attachment uploaded and linked.';
+      }catch(upErr){
+        uploadMsg=' Ticket was submitted, but the attachment upload failed: '+(upErr.message||upErr);
+      }
+    }
+    alert('Ticket submitted to Executive1 successfully. Status is now Submitted and the clock has stopped.'+uploadMsg);
     refresh();
     openTicket(DETAIL.ticket.TicketID);
   }catch(e){alertErr(e);}
