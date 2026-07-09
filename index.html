@@ -33,10 +33,7 @@
 
   <div class="card">
     <h3>Connection</h3>
-    <label>Apps Script Web App URL</label>
-    <input id="scriptUrl" placeholder="https://script.google.com/macros/s/AKfycbwoo9UlzFcofUGUdKKo6cIweHTQU0oez0nJFsFkU_qNykOYSHga9K0S8j5T3PkZrgU_Tw/exec">
-    <button class="secondary" onclick="saveUrlAndPing()">Save URL & Test Live Connection</button>
-    <div id="connectionStatus" class="status warn">Not connected</div>
+    <div id="connectionStatus" class="status warn">Connecting using embedded Apps Script URL...</div>
   </div>
 
   <div class="card">
@@ -86,8 +83,8 @@
 </div>
 
 <script>
-const DEFAULT_SCRIPT_URL = 'PASTE_APPS_SCRIPT_WEB_APP_URL_HERE';
-const STORAGE_KEY = 'roulette_apps_script_url';
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwoo9UlzFcofUGUdKKo6cIweHTQU0oez0nJFsFkU_qNykOYSHga9K0S8j5T3PkZrgU_Tw/exec';
+const STORAGE_KEY = 'roulette_apps_script_url_disabled';
 
 const wheel = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
 let sequence = [];
@@ -95,11 +92,10 @@ let historyNumbers = [];
 let lastPrediction = [];
 
 window.addEventListener('load', () => {
-  const saved = localStorage.getItem(STORAGE_KEY) || DEFAULT_SCRIPT_URL;
-  document.getElementById('scriptUrl').value = saved;
+  saveUrlAndPing();
 });
 
-function getScriptUrl(){ return (document.getElementById('scriptUrl').value || '').trim(); }
+function getScriptUrl(){ return DEFAULT_SCRIPT_URL; }
 function setStatus(text, cls){ document.getElementById('connectionStatus').className = 'status ' + (cls || ''); document.getElementById('connectionStatus').innerHTML = text; }
 function normalizeNumber(n){ n = Number(String(n).trim()); return Number.isInteger(n) && n >= 0 && n <= 36 ? n : null; }
 function parseNumbers(value){ return String(value).split(',').map(x => normalizeNumber(x)).filter(x => x !== null); }
@@ -113,7 +109,7 @@ function validateContext(){ const ctx=getContext(); if(!ctx.tableNumber){ alert(
 
 async function api(action, payload){
   const url = getScriptUrl();
-  if(!url || url === DEFAULT_SCRIPT_URL) throw new Error('Paste your deployed Apps Script Web App URL first.');
+  if(!url) throw new Error('Apps Script Web App URL is missing in the HTML constant.');
   const res = await fetch(url, { method:'POST', mode:'cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action, ...payload}) });
   const text = await res.text();
   let data; try{ data = JSON.parse(text); }catch(e){ throw new Error('Apps Script did not return JSON. Check Web App deployment. Response: ' + text.slice(0,160)); }
@@ -122,13 +118,13 @@ async function api(action, payload){
 }
 
 async function saveUrlAndPing(){
-  const url = getScriptUrl();
-  localStorage.setItem(STORAGE_KEY, url);
-  setStatus('Testing live connection...', 'warn');
+  setStatus('Testing live connection using embedded Apps Script URL...', 'warn');
   try{
     const data = await api('ping', {});
     setStatus('✅ Live connection active. Sheet: ' + data.sheetName + ' | Rows: ' + data.rows, 'ok');
-  }catch(err){ setStatus('❌ Connection failed: ' + err.message, 'bad'); }
+  }catch(err){
+    setStatus('❌ Connection failed: ' + err.message, 'bad');
+  }
 }
 
 async function loadHistory(){
