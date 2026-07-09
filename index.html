@@ -5,44 +5,72 @@
 <title>Roulette Probability Predictor</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body{font-family:Arial;background:#111;color:#fff;padding:20px}
-  .app{max-width:700px;margin:auto;background:#1d1d1d;padding:20px;border-radius:14px}
-  input,select,button{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:none;box-sizing:border-box}
-  button{background:#00b894;color:#fff;font-weight:bold;cursor:pointer}
-  button.danger{background:#d63031}
-  .card{background:#2d2d2d;padding:15px;margin-top:15px;border-radius:10px}
-  .num{font-size:34px;font-weight:bold;color:#00ff99}
-  .small{color:#bbb;font-size:13px}
+  :root{--bg:#111;--panel:#1d1d1d;--card:#2d2d2d;--green:#00b894;--red:#d63031;--text:#fff;--muted:#bbb;--line:#3a3a3a;}
+  *{box-sizing:border-box}
+  body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);padding:20px;margin:0}
+  .app{max-width:900px;margin:auto;background:var(--panel);padding:20px;border-radius:14px;box-shadow:0 10px 35px rgba(0,0,0,.35)}
+  input,select,button{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:none;font-size:15px}
+  input,select{background:#f8f8f8;color:#111}
+  button{background:var(--green);color:#fff;font-weight:bold;cursor:pointer}
+  button.secondary{background:#0984e3}
+  button.danger{background:var(--red)}
+  button:disabled{opacity:.6;cursor:not-allowed}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .card{background:var(--card);padding:15px;margin-top:15px;border-radius:10px;border:1px solid var(--line)}
+  .num{font-size:38px;font-weight:bold;color:#00ff99;display:inline-block;min-width:60px}
+  .small{color:var(--muted);font-size:13px;line-height:1.4}
+  .status{padding:10px;border-radius:8px;background:#333;margin-top:10px;font-size:14px}
+  .ok{color:#00ff99}.bad{color:#ff7675}.warn{color:#fdcb6e}
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
+  th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}.app{padding:15px}}
 </style>
 </head>
 <body>
-
 <div class="app">
-  <h2>Roulette Probability Predictor</h2>
-  <p class="small">
-    Enter numbers in order from oldest to latest. Same dealer starts with last 5 numbers.
-    If dealer changes, reset and enter last 3 numbers.
-  </p>
-
-  <label>Dealer Status</label>
-  <select id="dealerMode">
-    <option value="same">Same Dealer</option>
-    <option value="changed">Dealer Changed</option>
-  </select>
-
-  <label>Initial Numbers</label>
-  <input id="initialNumbers" placeholder="Example: 12, 4, 29, 7, 18">
-
-  <button onclick="startSession()">Start / Reset Session</button>
-
-  <label>Latest Number After Spin</label>
-  <input id="latestNumber" placeholder="Enter latest number e.g. 22">
-
-  <button onclick="addLatest()">Add Latest & Predict Next</button>
-  <button class="danger" onclick="clearAll()">Clear All</button>
+  <h2>Roulette Probability Predictor + Google Sheets Database</h2>
+  <p class="small">Every spin is saved by <b>Table Number</b> and <b>Dealer Name</b>. The prediction combines the current spin sequence with historical patterns from your Google Sheet. Roulette remains a random game, so this is a probability model, not a guarantee.</p>
 
   <div class="card">
-    <h3>Entered Sequence</h3>
+    <h3>Connection</h3>
+    <label>Apps Script Web App URL</label>
+    <input id="scriptUrl" placeholder="https://script.google.com/macros/s/AKfycbwoo9UlzFcofUGUdKKo6cIweHTQU0oez0nJFsFkU_qNykOYSHga9K0S8j5T3PkZrgU_Tw/exec">
+    <button class="secondary" onclick="saveUrlAndPing()">Save URL & Test Live Connection</button>
+    <div id="connectionStatus" class="status warn">Not connected</div>
+  </div>
+
+  <div class="card">
+    <h3>Session Details</h3>
+    <div class="grid">
+      <div>
+        <label>Table Number</label>
+        <input id="tableNumber" placeholder="Example: Table 4">
+      </div>
+      <div>
+        <label>Dealer Name</label>
+        <input id="dealerName" placeholder="Example: John">
+      </div>
+    </div>
+    <label>Dealer Status</label>
+    <select id="dealerMode">
+      <option value="same">Same Dealer - start with last 5 numbers</option>
+      <option value="changed">Dealer Changed - start with last 3 numbers</option>
+    </select>
+    <label>Initial Numbers, oldest to latest</label>
+    <input id="initialNumbers" placeholder="Example: 12, 4, 29, 7, 18">
+    <button onclick="startSession()">Start / Reset Session & Save Initial Sequence</button>
+  </div>
+
+  <div class="card">
+    <h3>New Spin</h3>
+    <label>Latest Number After Spin</label>
+    <input id="latestNumber" placeholder="Enter latest number e.g. 22" onkeydown="if(event.key==='Enter') addLatest();">
+    <button onclick="addLatest()">Add Latest, Save & Predict Next</button>
+    <button class="danger" onclick="clearLocalOnly()">Clear Screen Only</button>
+  </div>
+
+  <div class="card">
+    <h3>Current Sequence</h3>
     <div id="sequence">None</div>
   </div>
 
@@ -52,178 +80,178 @@
   </div>
 
   <div class="card">
-    <h3>Model Notes</h3>
-    <p class="small">
-      Formula combines: wheel distance, neighbour zones, repeated deflection gaps,
-      momentum direction, recency weighting, and latest-number influence.
-    </p>
+    <h3>Recent Database History For This Table + Dealer</h3>
+    <div id="historyBox" class="small">No history loaded.</div>
   </div>
 </div>
 
 <script>
-const wheel = [
-  0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,
-  10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26
-];
+const DEFAULT_SCRIPT_URL = 'PASTE_APPS_SCRIPT_WEB_APP_URL_HERE';
+const STORAGE_KEY = 'roulette_apps_script_url';
 
+const wheel = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
 let sequence = [];
+let historyNumbers = [];
+let lastPrediction = [];
 
-function normalizeNumber(n){
-  n = Number(n);
-  if(Number.isInteger(n) && n >= 0 && n <= 36) return n;
-  return null;
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem(STORAGE_KEY) || DEFAULT_SCRIPT_URL;
+  document.getElementById('scriptUrl').value = saved;
+});
+
+function getScriptUrl(){ return (document.getElementById('scriptUrl').value || '').trim(); }
+function setStatus(text, cls){ document.getElementById('connectionStatus').className = 'status ' + (cls || ''); document.getElementById('connectionStatus').innerHTML = text; }
+function normalizeNumber(n){ n = Number(String(n).trim()); return Number.isInteger(n) && n >= 0 && n <= 36 ? n : null; }
+function parseNumbers(value){ return String(value).split(',').map(x => normalizeNumber(x)).filter(x => x !== null); }
+function getWheelIndex(num){ return wheel.indexOf(Number(num)); }
+function stepGap(from,to){ const a=getWheelIndex(from), b=getWheelIndex(to); let cw=(b-a+wheel.length)%wheel.length; let acw=(a-b+wheel.length)%wheel.length; return cw <= acw ? cw : -acw; }
+function numberAtGap(from,gap){ const idx=getWheelIndex(from); return wheel[(idx + gap + wheel.length) % wheel.length]; }
+function circularDistance(a,b){ const ia=getWheelIndex(a), ib=getWheelIndex(b); const diff=Math.abs(ia-ib); return Math.min(diff, wheel.length-diff); }
+function requiredCount(){ return document.getElementById('dealerMode').value === 'same' ? 5 : 3; }
+function getContext(){ return { tableNumber: document.getElementById('tableNumber').value.trim(), dealerName: document.getElementById('dealerName').value.trim(), dealerMode: document.getElementById('dealerMode').value }; }
+function validateContext(){ const ctx=getContext(); if(!ctx.tableNumber){ alert('Please enter Table Number.'); return null; } if(!ctx.dealerName){ alert('Please enter Dealer Name.'); return null; } return ctx; }
+
+async function api(action, payload){
+  const url = getScriptUrl();
+  if(!url || url === DEFAULT_SCRIPT_URL) throw new Error('Paste your deployed Apps Script Web App URL first.');
+  const res = await fetch(url, { method:'POST', mode:'cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({action, ...payload}) });
+  const text = await res.text();
+  let data; try{ data = JSON.parse(text); }catch(e){ throw new Error('Apps Script did not return JSON. Check Web App deployment. Response: ' + text.slice(0,160)); }
+  if(!data.ok) throw new Error(data.message || 'Request failed');
+  return data;
 }
 
-function parseNumbers(value){
-  return value.split(',')
-    .map(x => normalizeNumber(x.trim()))
-    .filter(x => x !== null);
+async function saveUrlAndPing(){
+  const url = getScriptUrl();
+  localStorage.setItem(STORAGE_KEY, url);
+  setStatus('Testing live connection...', 'warn');
+  try{
+    const data = await api('ping', {});
+    setStatus('✅ Live connection active. Sheet: ' + data.sheetName + ' | Rows: ' + data.rows, 'ok');
+  }catch(err){ setStatus('❌ Connection failed: ' + err.message, 'bad'); }
 }
 
-function getWheelIndex(num){
-  return wheel.indexOf(num);
+async function loadHistory(){
+  const ctx = validateContext(); if(!ctx) return [];
+  try{
+    const data = await api('history', { tableNumber: ctx.tableNumber, dealerName: ctx.dealerName, limit: 300 });
+    historyNumbers = (data.history || []).map(r => Number(r.Number)).filter(n => Number.isInteger(n));
+    renderHistory(data.history || []);
+    return historyNumbers;
+  }catch(err){
+    document.getElementById('historyBox').innerHTML = '<span class="bad">Could not load history: ' + err.message + '</span>';
+    return [];
+  }
 }
 
-function circularDistance(a,b){
-  const ia = getWheelIndex(a);
-  const ib = getWheelIndex(b);
-  const diff = Math.abs(ia - ib);
-  return Math.min(diff, wheel.length - diff);
+function renderHistory(rows){
+  if(!rows.length){ document.getElementById('historyBox').innerHTML = 'No saved history yet for this table and dealer.'; return; }
+  const recent = rows.slice(-12).reverse();
+  document.getElementById('historyBox').innerHTML = '<table><tr><th>Time</th><th>Number</th><th>Spin</th><th>Gap</th></tr>' + recent.map(r => `<tr><td>${r.Timestamp || ''}</td><td>${r.Number}</td><td>${r.SpinIndex || ''}</td><td>${r.WheelGap || ''}</td></tr>`).join('') + '</table>';
 }
 
-function stepGap(from,to){
-  const a = getWheelIndex(from);
-  const b = getWheelIndex(to);
-  let clockwise = (b - a + wheel.length) % wheel.length;
-  let anticlockwise = (a - b + wheel.length) % wheel.length;
-  return clockwise <= anticlockwise ? clockwise : -anticlockwise;
+async function startSession(){
+  const ctx = validateContext(); if(!ctx) return;
+  const nums = parseNumbers(document.getElementById('initialNumbers').value);
+  const required = requiredCount();
+  if(nums.length < required){ alert('Please enter at least ' + required + ' valid numbers for this dealer mode.'); return; }
+  sequence = nums.slice(-required);
+  updateSequence();
+  await loadHistory();
+  await saveSpins(sequence, true);
+  predict();
 }
 
-function numberAtGap(from,gap){
-  const idx = getWheelIndex(from);
-  return wheel[(idx + gap + wheel.length) % wheel.length];
+async function addLatest(){
+  const ctx = validateContext(); if(!ctx) return;
+  const n = normalizeNumber(document.getElementById('latestNumber').value);
+  if(n === null){ alert('Enter a valid roulette number from 0 to 36.'); return; }
+  if(sequence.length === 0){ await loadHistory(); sequence = historyNumbers.slice(-requiredCount()); }
+  sequence.push(n);
+  if(sequence.length > 20) sequence.shift();
+  document.getElementById('latestNumber').value = '';
+  updateSequence();
+  await saveSpins([n], false);
+  await loadHistory();
+  predict();
+}
+
+async function saveSpins(nums, isInitial){
+  const ctx = getContext();
+  const payload = { tableNumber: ctx.tableNumber, dealerName: ctx.dealerName, dealerMode: ctx.dealerMode, numbers: nums, currentSequence: sequence, isInitial: !!isInitial, prediction: lastPrediction };
+  try{
+    const data = await api('saveSpins', payload);
+    setStatus('✅ Live connection active. Saved ' + data.saved + ' spin(s).', 'ok');
+  }catch(err){ setStatus('❌ Save failed: ' + err.message, 'bad'); }
 }
 
 function predict(){
-  if(sequence.length < 3){
-    document.getElementById("prediction").innerHTML = "Need at least 3 numbers.";
-    return;
-  }
+  const combined = [...historyNumbers, ...sequence].filter((v,i,a) => i === 0 || true);
+  const working = combined.length >= 3 ? combined.slice(-80) : sequence;
+  if(working.length < 3){ document.getElementById('prediction').innerHTML = 'Need at least 3 numbers.'; return; }
 
-  const latest = sequence[sequence.length - 1];
-  const scores = {};
-  wheel.forEach(n => scores[n] = 0);
+  const latest = working[working.length - 1];
+  const scores = {}; wheel.forEach(n => scores[n] = 1); // small baseline
+  const gaps = [];
+  for(let i=1;i<working.length;i++) gaps.push(stepGap(working[i-1], working[i]));
 
-  let gaps = [];
-  for(let i = 1; i < sequence.length; i++){
-    gaps.push(stepGap(sequence[i-1], sequence[i]));
-  }
-
-  const recentWeightBase = 1.4;
-
-  // 1. Gap / deflection pattern
-  gaps.forEach((gap, i) => {
-    const weight = Math.pow(recentWeightBase, i);
+  // A) Current sequence deflection gaps, stronger recent weighting
+  gaps.forEach((gap,i)=>{
+    const weight = Math.pow(1.28, i);
     const target = numberAtGap(latest, gap);
-    scores[target] += 25 * weight;
-
-    // neighbouring deflection zones
-    [-2,-1,1,2].forEach(offset => {
-      scores[numberAtGap(target, offset)] += 8 * weight;
-    });
+    scores[target] += 18 * weight;
+    [-2,-1,1,2].forEach(o => scores[numberAtGap(target,o)] += 6 * weight);
   });
 
-  // 2. Momentum trend from last gaps
-  const lastGaps = gaps.slice(-3);
-  const avgGap = Math.round(lastGaps.reduce((a,b)=>a+b,0) / lastGaps.length);
-  const momentumTarget = numberAtGap(latest, avgGap);
-  scores[momentumTarget] += 35;
-
-  [-3,-2,-1,1,2,3].forEach(offset => {
-    scores[numberAtGap(momentumTarget, offset)] += 10;
+  // B) Momentum: average of last 3 gaps and last 5 gaps
+  [3,5].forEach(windowSize => {
+    const recent = gaps.slice(-windowSize);
+    if(recent.length){
+      const avg = Math.round(recent.reduce((a,b)=>a+b,0)/recent.length);
+      const t = numberAtGap(latest, avg);
+      scores[t] += windowSize === 3 ? 35 : 22;
+      [-3,-2,-1,1,2,3].forEach(o => scores[numberAtGap(t,o)] += windowSize === 3 ? 9 : 5);
+    }
   });
 
-  // 3. Latest number neighbour bias
-  [-4,-3,-2,-1,1,2,3,4].forEach(offset => {
-    scores[numberAtGap(latest, offset)] += 12;
-  });
-
-  // 4. Hot number repetition bias
-  sequence.forEach((num, i) => {
-    const recency = i + 1;
-    scores[num] += recency * 3;
-  });
-
-  // 5. Avoid overconfidence on exact last number
-  scores[latest] *= 0.75;
-
-  const ranked = Object.entries(scores)
-    .map(([num,score]) => ({num:Number(num), score}))
-    .sort((a,b) => b.score - a.score)
-    .slice(0,2);
-
-  const total = ranked.reduce((a,b)=>a+b.score,0);
-
-  document.getElementById("prediction").innerHTML = ranked.map((r,i)=>{
-    const pct = total ? ((r.score / total) * 100).toFixed(1) : 0;
-    return `
-      <div>
-        <span class="num">${r.num}</span>
-        <br>
-        Pick ${i+1} — model confidence ${pct}%
-      </div><br>
-    `;
-  }).join("");
-}
-
-function startSession(){
-  const mode = document.getElementById("dealerMode").value;
-  const nums = parseNumbers(document.getElementById("initialNumbers").value);
-
-  const required = mode === "same" ? 5 : 3;
-
-  if(nums.length < required){
-    alert(`Please enter at least ${required} valid numbers for this dealer mode.`);
-    return;
+  // C) Historical transition model: when previous number appeared, what came next?
+  for(let i=1;i<working.length-1;i++){
+    if(working[i] === latest){
+      const next = working[i+1];
+      const ageWeight = 1 + (i / working.length);
+      scores[next] += 42 * ageWeight;
+      [-1,1].forEach(o => scores[numberAtGap(next,o)] += 12 * ageWeight);
+    }
   }
 
-  sequence = nums.slice(-required);
-  updateSequence();
-  predict();
+  // D) Historical gap frequency model
+  const freq = {};
+  gaps.forEach(g => freq[g] = (freq[g] || 0) + 1);
+  Object.entries(freq).forEach(([g,c]) => {
+    const t = numberAtGap(latest, Number(g));
+    scores[t] += c * 10;
+    [-1,1].forEach(o => scores[numberAtGap(t,o)] += c * 3);
+  });
+
+  // E) Latest neighbour / scatter zone
+  [-4,-3,-2,-1,1,2,3,4].forEach(o => scores[numberAtGap(latest,o)] += 10);
+
+  // F) Hot number recency without overfitting
+  working.slice(-20).forEach((num,i) => scores[num] += (i+1) * 1.6);
+  scores[latest] *= 0.72;
+
+  const ranked = Object.entries(scores).map(([num,score])=>({num:Number(num),score})).sort((a,b)=>b.score-a.score).slice(0,2);
+  const totalAll = Object.values(scores).reduce((a,b)=>a+b,0);
+  lastPrediction = ranked.map(r => ({number:r.num, confidence: totalAll ? ((r.score/totalAll)*100) : 0}));
+
+  document.getElementById('prediction').innerHTML = ranked.map((r,i)=>{
+    const pct = totalAll ? ((r.score/totalAll)*100).toFixed(2) : '0.00';
+    return `<div><span class="num">${r.num}</span><br>Pick ${i+1} — weighted probability score ${pct}%</div><br>`;
+  }).join('') + '<p class="small">Uses saved database history for this table/dealer plus current sequence, wheel gaps, neighbour zones, momentum trend and repeated transition patterns.</p>';
 }
 
-function addLatest(){
-  const n = normalizeNumber(document.getElementById("latestNumber").value.trim());
-
-  if(n === null){
-    alert("Enter a valid roulette number from 0 to 36.");
-    return;
-  }
-
-  sequence.push(n);
-
-  // keep last 12 only for fresh dealer pattern
-  if(sequence.length > 12) sequence.shift();
-
-  document.getElementById("latestNumber").value = "";
-  updateSequence();
-  predict();
-}
-
-function updateSequence(){
-  document.getElementById("sequence").innerHTML = sequence.length
-    ? sequence.join(" → ")
-    : "None";
-}
-
-function clearAll(){
-  sequence = [];
-  document.getElementById("initialNumbers").value = "";
-  document.getElementById("latestNumber").value = "";
-  updateSequence();
-  document.getElementById("prediction").innerHTML = "No prediction yet";
-}
+function updateSequence(){ document.getElementById('sequence').innerHTML = sequence.length ? sequence.join(' → ') : 'None'; }
+function clearLocalOnly(){ sequence=[]; historyNumbers=[]; document.getElementById('initialNumbers').value=''; document.getElementById('latestNumber').value=''; updateSequence(); document.getElementById('prediction').innerHTML='No prediction yet'; document.getElementById('historyBox').innerHTML='No history loaded.'; }
 </script>
-
 </body>
 </html>
