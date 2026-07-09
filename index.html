@@ -1,1094 +1,229 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <base target="_top">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Licence Dashboard</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f3f4f6;
-      color: #111827;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-
-    .header {
-      background: #111827;
-      color: white;
-      padding: 20px;
-      border-radius: 14px;
-      margin-bottom: 18px;
-    }
-
-    .header h1 {
-      margin: 0;
-      font-size: 26px;
-    }
-
-    .header p {
-      margin-bottom: 0;
-    }
-
-    .status-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .status-card {
-      background: white;
-      border-radius: 14px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-      overflow: hidden;
-    }
-
-    .status-title {
-      padding: 14px 16px;
-      font-weight: bold;
-      color: white;
-    }
-
-    .orange { background: #f97316; }
-    .red { background: #dc2626; }
-
-    .status-body {
-      padding: 14px 16px;
-      min-height: 80px;
-    }
-
-    .person {
-      padding: 10px 0;
-      border-bottom: 1px solid #e5e7eb;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .person:last-child {
-      border-bottom: none;
-    }
-
-    .empty {
-      color: #6b7280;
-      font-style: italic;
-    }
-
-    .form-card {
-      background: white;
-      border-radius: 14px;
-      padding: 22px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    }
-
-    .form-card h2 {
-      margin-top: 0;
-    }
-
-    .search-card {
-      margin-bottom: 20px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
-    }
-
-    label {
-      font-size: 13px;
-      font-weight: bold;
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    input, select {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 11px;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      font-size: 14px;
-    }
-
-    button {
-      margin-top: 18px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #1d4ed8;
-    }
-
-    button:disabled {
-      background: #9ca3af;
-      cursor: not-allowed;
-    }
-
-    .message {
-      margin-top: 14px;
-      padding: 12px;
-      border-radius: 10px;
-      display: none;
-    }
-
-    .success {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .error {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .checkbox-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 11px;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      background: #fff;
-      min-height: 42px;
-    }
-
-    .checkbox-row input[type="checkbox"] {
-      width: auto;
-      margin: 0;
-    }
-
-    .file-note {
-      font-size: 12px;
-      color: #6b7280;
-      margin-top: 5px;
-    }
-
-    .action-btn {
-      margin: 0 2px 2px 0;
-      padding: 4px 8px;
-      font-size: 11px;
-      border-radius: 6px;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      color: white;
-    }
-
-    .edit-btn {
-      background: #2563eb;
-    }
-    .edit-btn:hover {
-      background: #1d4ed8;
-    }
-
-    .delete-btn {
-      background: #dc2626;
-    }
-
-    .delete-btn:hover {
-      background: #b91c1c;
-    }
-
-    .cancel-btn {
-      background: #6b7280;
-      margin-left: 8px;
-    }
-
-    .cancel-btn:hover {
-      background: #4b5563;
-    }
-
-
-
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-
-    .summary-card {
-      background: white;
-      border-radius: 14px;
-      padding: 16px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-      border-left: 5px solid #2563eb;
-    }
-
-    .summary-card h3 {
-      margin: 0;
-      font-size: 13px;
-      color: #6b7280;
-    }
-
-    .summary-card p {
-      margin: 8px 0 0;
-      font-size: 28px;
-      font-weight: bold;
-      color: #111827;
-    }
-
-    .summary-card.red-card { border-left-color: #dc2626; }
-    .summary-card.orange-card { border-left-color: #f97316; }
-    .summary-card.green-card { border-left-color: #16a34a; }
-
-    .view-link {
-      color: #2563eb;
-      font-weight: bold;
-      text-decoration: underline;
-      display: inline-block;
-      margin-right: 6px;
-      margin-bottom: 4px;
-    }
-
-    .transactions-scroll {
-      overflow-x: auto;
-      max-height: 560px;
-    }
-
-    .transactions-scroll table th {
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-
-    /* table action cell: right-aligned, compact */
-    .action-cell {
-      text-align: right;
-      white-space: nowrap;
-      padding: 6px 8px;
-    }
-    .action-cell .action-btn {
-      margin: 0 0 0 4px;
-    }
-
-    /* search result action row */
-    .person-actions {
-      margin-top: 6px;
-      text-align: right;
-    }
-    .person-actions .action-btn {
-      margin: 0 0 0 4px;
-    }
-
-  </style>
+<meta charset="UTF-8">
+<title>Roulette Probability Predictor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body{font-family:Arial;background:#111;color:#fff;padding:20px}
+  .app{max-width:700px;margin:auto;background:#1d1d1d;padding:20px;border-radius:14px}
+  input,select,button{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:none;box-sizing:border-box}
+  button{background:#00b894;color:#fff;font-weight:bold;cursor:pointer}
+  button.danger{background:#d63031}
+  .card{background:#2d2d2d;padding:15px;margin-top:15px;border-radius:10px}
+  .num{font-size:34px;font-weight:bold;color:#00ff99}
+  .small{color:#bbb;font-size:13px}
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>Licence Dashboard</h1>
-      <p>Distinct licence data entry and expiry monitoring</p>
-    </div>
 
+<div class="app">
+  <h2>Roulette Probability Predictor</h2>
+  <p class="small">
+    Enter numbers in order from oldest to latest. Same dealer starts with last 5 numbers.
+    If dealer changes, reset and enter last 3 numbers.
+  </p>
 
+  <label>Dealer Status</label>
+  <select id="dealerMode">
+    <option value="same">Same Dealer</option>
+    <option value="changed">Dealer Changed</option>
+  </select>
 
-    <div class="summary-grid">
-      <div class="summary-card">
-        <h3>Total No of Drivers</h3>
-        <p id="totalDriversBox">0</p>
-      </div>
-      <div class="summary-card green-card">
-        <h3>Total Other Licence</h3>
-        <p id="totalOtherLicenceBox">0</p>
-      </div>
-      <div class="summary-card red-card">
-        <h3>Total Expired</h3>
-        <p id="totalExpiredBox">0</p>
-      </div>
-      <div class="summary-card">
-        <h3>Total Aqua Drivers</h3>
-        <p id="totalAquaDriversBox">0</p>
-      </div>
-      <div class="summary-card orange-card">
-        <h3>Total Distinct</h3>
-        <p id="totalDistinctBox">0</p>
-      </div>
-      <div class="summary-card">
-        <h3>Total Onpoint</h3>
-        <p id="totalOnpointBox">0</p>
-      </div>
-    </div>
+  <label>Initial Numbers</label>
+  <input id="initialNumbers" placeholder="Example: 12, 4, 29, 7, 18">
 
-    <div class="status-grid">
-      <div class="status-card">
-        <div class="status-title orange">Licence About To Expire</div>
-        <div class="status-body" id="aboutToExpireBox">Loading...</div>
-      </div>
+  <button onclick="startSession()">Start / Reset Session</button>
 
-      <div class="status-card">
-        <div class="status-title red">Licence Expired</div>
-        <div class="status-body" id="expiredBox">Loading...</div>
-      </div>
-    </div>
+  <label>Latest Number After Spin</label>
+  <input id="latestNumber" placeholder="Enter latest number e.g. 22">
 
+  <button onclick="addLatest()">Add Latest & Predict Next</button>
+  <button class="danger" onclick="clearAll()">Clear All</button>
 
-    <div class="form-card search-card">
-      <h2>Search Licence Details</h2>
-      <div class="form-grid">
-        <div>
-          <label>Search by Name or Surname</label>
-          <input id="searchInput" placeholder="Enter name or surname">
-        </div>
-      </div>
-      <button id="searchBtn" type="button">Search</button>
-      <div class="status-body" id="searchResultsBox"><div class="empty">Search for an individual to view their details.</div></div>
-    </div>
-
-    <div class="form-card">
-      <h2>Enter Licence Details</h2>
-      <form id="licenceForm">
-        <div class="form-grid">
-          <div>
-            <label>Name</label>
-            <input name="name" required>
-          </div>
-
-          <div>
-            <label>Surname</label>
-            <input name="surname" required>
-          </div>
-
-          <div>
-            <label>Licence Number</label>
-            <input name="licenceNumber" required>
-          </div>
-
-          <div>
-            <label>Country of Issue</label>
-            <select name="countryOfIssue" required>
-              <option>Zimbabwe</option>
-              <option selected>South Africa</option>
-              <option>Malawi</option>
-              <option>Mozambique</option>
-              <option>Swaziland</option>
-              <option>Lesotho</option>
-              <option>Zambia</option>
-              <option>DRC</option>
-              <option>Other</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Company</label>
-            <select name="company" required>
-              <option selected>Distinct</option>
-              <option>Onpoing Group</option>
-              <option>Nkanyezi</option>
-              <option>Aqua Telecoms</option>
-              <option>Onpoint Ontime</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Department</label>
-            <select name="department" required>
-              <option value="" selected disabled>Select department</option>
-              <option>Admin</option>
-              <option>Business Development</option>
-              <option>Finance &amp; IT</option>
-              <option>Fleet</option>
-              <option>HR</option>
-              <option>Operations</option>
-              <option>Procurement</option>
-              <option>Sales</option>
-              <option>SHEQ</option>
-              <option>Tendering</option>
-              <option>Warehouse</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Licence Type</label>
-            <select name="licenceType" required>
-              <option value="" selected disabled>Select licence type</option>
-              <option>C</option>
-              <option>C1</option>
-              <option>A1</option>
-              <option>A2</option>
-              <option>EC</option>
-              <option>EC1</option>
-              <option>PrDp</option>
-              <option>B</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Validity</label>
-            <input name="validity" type="date" required>
-          </div>
-
-          <div>
-            <label>First Issue</label>
-            <input name="firstIssue" type="date" required>
-          </div>
-
-          <div>
-            <label>Vehicle Restrictions</label>
-            <input name="vehicleRestrictions" required>
-          </div>
-
-          <div>
-            <label>Other Licence</label>
-            <select name="otherLicence">
-              <option value="" selected>Select other licence</option>
-              <option>Operator</option>
-              <option>FE Loader OP Licence</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Upload Licence</label>
-            <input id="licenceUpload" name="licenceUpload" type="file" accept="image/*,.pdf" capture="environment">
-            <div class="file-note">Uploads to Google Drive and saves a clickable link in the Licence sheet tab.</div>
-            <div id="currentLicenceFileBox" class="file-note" style="display:none; margin-top:8px;"></div>
-          </div>
-
-          <div>
-            <label>Fleet Card Policy</label>
-            <div class="checkbox-row">
-              <input id="fleetCardPolicyIssuedSigned" name="fleetCardPolicyIssuedSigned" type="checkbox" value="Issued / Signed">
-              <span>Issued or Signed</span>
-            </div>
-          </div>
-
-          <div>
-            <label>Fleet Policy</label>
-            <div class="checkbox-row">
-              <input id="fleetPolicyIssuedSigned" name="fleetPolicyIssuedSigned" type="checkbox" value="Issued / Signed">
-              <span>Issued or Signed</span>
-            </div>
-          </div>
-        </div>
-
-        <button id="submitBtn" type="submit">Save Licence</button>
-        <button id="cancelEditBtn" class="cancel-btn" type="button" style="display:none;">Cancel Edit</button>
-        <div id="message" class="message"></div>
-      </form>
-    
-    <div class="form-card" style="margin-top:20px;">
-      <h2>All Licence Transactions</h2>
-      <div class="transactions-scroll">
-        <table style="width:100%; border-collapse:collapse; font-size:14px;">
-          <thead>
-            <tr style="background:#111827; color:white;">
-              <th style="padding:10px; border:1px solid #e5e7eb;">Name</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">Surname</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">Licence Number</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">Country of Issue</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">Company</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">Department</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">Licence Type</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">Validity</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">First Issue</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">Vehicle Restrictions</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">Other Licence</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">Licence Link</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">Fleet Card Policy</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">Fleet Policy</th>
-              <th style="padding:10px; border:1px solid #e5e7eb;">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="transactionsBody">
-            <tr><td colspan="15" style="padding:12px; text-align:center;">Loading transactions...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
+  <div class="card">
+    <h3>Entered Sequence</h3>
+    <div id="sequence">None</div>
   </div>
 
-  <script>
-    /*
-      Replace this with your deployed Apps Script Web App URL after pasting the fixed Apps Script code.
-      Example: https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec
-    */
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCi7QqdEh3-Owdfvzb8I6xzJvzFl_eLWX9goEjYxU7h44w1V7RCKhFVFVPikE74T4bOg/exec';
-    let editingRowNumber = null;
-    let editingExistingLicenceFileLink = '';
-    let transactionLicenceRecords = [];
-    let searchLicenceRecords = [];
+  <div class="card">
+    <h3>Most Likely Next 2 Numbers</h3>
+    <div id="prediction">No prediction yet</div>
+  </div>
 
-    document.addEventListener('DOMContentLoaded', function() {
-      loadDashboard();
+  <div class="card">
+    <h3>Model Notes</h3>
+    <p class="small">
+      Formula combines: wheel distance, neighbour zones, repeated deflection gaps,
+      momentum direction, recency weighting, and latest-number influence.
+    </p>
+  </div>
+</div>
 
-      document.getElementById('searchBtn').addEventListener('click', searchPerson);
-      document.getElementById('searchInput').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') searchPerson();
-      });
-      document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
+<script>
+const wheel = [
+  0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,
+  10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26
+];
+
+let sequence = [];
+
+function normalizeNumber(n){
+  n = Number(n);
+  if(Number.isInteger(n) && n >= 0 && n <= 36) return n;
+  return null;
+}
+
+function parseNumbers(value){
+  return value.split(',')
+    .map(x => normalizeNumber(x.trim()))
+    .filter(x => x !== null);
+}
+
+function getWheelIndex(num){
+  return wheel.indexOf(num);
+}
+
+function circularDistance(a,b){
+  const ia = getWheelIndex(a);
+  const ib = getWheelIndex(b);
+  const diff = Math.abs(ia - ib);
+  return Math.min(diff, wheel.length - diff);
+}
+
+function stepGap(from,to){
+  const a = getWheelIndex(from);
+  const b = getWheelIndex(to);
+  let clockwise = (b - a + wheel.length) % wheel.length;
+  let anticlockwise = (a - b + wheel.length) % wheel.length;
+  return clockwise <= anticlockwise ? clockwise : -anticlockwise;
+}
+
+function numberAtGap(from,gap){
+  const idx = getWheelIndex(from);
+  return wheel[(idx + gap + wheel.length) % wheel.length];
+}
+
+function predict(){
+  if(sequence.length < 3){
+    document.getElementById("prediction").innerHTML = "Need at least 3 numbers.";
+    return;
+  }
+
+  const latest = sequence[sequence.length - 1];
+  const scores = {};
+  wheel.forEach(n => scores[n] = 0);
+
+  let gaps = [];
+  for(let i = 1; i < sequence.length; i++){
+    gaps.push(stepGap(sequence[i-1], sequence[i]));
+  }
+
+  const recentWeightBase = 1.4;
+
+  // 1. Gap / deflection pattern
+  gaps.forEach((gap, i) => {
+    const weight = Math.pow(recentWeightBase, i);
+    const target = numberAtGap(latest, gap);
+    scores[target] += 25 * weight;
+
+    // neighbouring deflection zones
+    [-2,-1,1,2].forEach(offset => {
+      scores[numberAtGap(target, offset)] += 8 * weight;
     });
+  });
+
+  // 2. Momentum trend from last gaps
+  const lastGaps = gaps.slice(-3);
+  const avgGap = Math.round(lastGaps.reduce((a,b)=>a+b,0) / lastGaps.length);
+  const momentumTarget = numberAtGap(latest, avgGap);
+  scores[momentumTarget] += 35;
+
+  [-3,-2,-1,1,2,3].forEach(offset => {
+    scores[numberAtGap(momentumTarget, offset)] += 10;
+  });
+
+  // 3. Latest number neighbour bias
+  [-4,-3,-2,-1,1,2,3,4].forEach(offset => {
+    scores[numberAtGap(latest, offset)] += 12;
+  });
+
+  // 4. Hot number repetition bias
+  sequence.forEach((num, i) => {
+    const recency = i + 1;
+    scores[num] += recency * 3;
+  });
+
+  // 5. Avoid overconfidence on exact last number
+  scores[latest] *= 0.75;
+
+  const ranked = Object.entries(scores)
+    .map(([num,score]) => ({num:Number(num), score}))
+    .sort((a,b) => b.score - a.score)
+    .slice(0,2);
+
+  const total = ranked.reduce((a,b)=>a+b.score,0);
+
+  document.getElementById("prediction").innerHTML = ranked.map((r,i)=>{
+    const pct = total ? ((r.score / total) * 100).toFixed(1) : 0;
+    return `
+      <div>
+        <span class="num">${r.num}</span>
+        <br>
+        Pick ${i+1} — model confidence ${pct}%
+      </div><br>
+    `;
+  }).join("");
+}
+
+function startSession(){
+  const mode = document.getElementById("dealerMode").value;
+  const nums = parseNumbers(document.getElementById("initialNumbers").value);
+
+  const required = mode === "same" ? 5 : 3;
+
+  if(nums.length < required){
+    alert(`Please enter at least ${required} valid numbers for this dealer mode.`);
+    return;
+  }
+
+  sequence = nums.slice(-required);
+  updateSequence();
+  predict();
+}
+
+function addLatest(){
+  const n = normalizeNumber(document.getElementById("latestNumber").value.trim());
+
+  if(n === null){
+    alert("Enter a valid roulette number from 0 to 36.");
+    return;
+  }
+
+  sequence.push(n);
+
+  // keep last 12 only for fresh dealer pattern
+  if(sequence.length > 12) sequence.shift();
+
+  document.getElementById("latestNumber").value = "";
+  updateSequence();
+  predict();
+}
+
+function updateSequence(){
+  document.getElementById("sequence").innerHTML = sequence.length
+    ? sequence.join(" → ")
+    : "None";
+}
+
+function clearAll(){
+  sequence = [];
+  document.getElementById("initialNumbers").value = "";
+  document.getElementById("latestNumber").value = "";
+  updateSequence();
+  document.getElementById("prediction").innerHTML = "No prediction yet";
+}
+</script>
 
-    document.getElementById('licenceForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const submitBtn = document.getElementById('submitBtn');
-      const rawFormData = new FormData(e.target);
-      const formData = Object.fromEntries(rawFormData.entries());
-      delete formData.licenceUpload;
-      formData.fleetCardPolicyIssuedSigned = document.getElementById('fleetCardPolicyIssuedSigned').checked ? 'Issued / Signed' : '';
-      formData.fleetPolicyIssuedSigned = document.getElementById('fleetPolicyIssuedSigned').checked ? 'Issued / Signed' : '';
-
-      // Always save to the Licence sheet tab only. Do not send anything to a Distinct sheet tab.
-
-      const licenceFile = document.getElementById('licenceUpload').files[0];
-
-      if (editingRowNumber && !licenceFile) {
-        formData.licenceFileLink = editingExistingLicenceFileLink || '';
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = licenceFile ? 'Uploading licence...' : 'Saving...';
-
-      readLicenceFile(licenceFile)
-        .then(function(filePayload) {
-          if (filePayload) {
-            formData.licenceFile = filePayload;
-          }
-          submitBtn.textContent = editingRowNumber ? 'Updating...' : 'Saving...';
-          if (editingRowNumber) {
-            formData.rowNumber = editingRowNumber;
-            return callServer('updateLicence', formData);
-          }
-          return callServer('submitLicence', formData);
-        })
-        .then(function(result) {
-          if (!result || !result.success) {
-            showMessage((result && result.message) || 'Could not save record.', 'error');
-          } else {
-            showMessage(result.message || (editingRowNumber ? 'Updated successfully.' : 'Saved successfully.'), 'success');
-            cancelEdit(false);
-            e.target.reset();
-            e.target.countryOfIssue.value = 'South Africa';
-            e.target.company.value = 'Distinct';
-            const currentBox = document.getElementById('currentLicenceFileBox');
-            if (currentBox) { currentBox.style.display = 'none'; currentBox.innerHTML = ''; }
-            loadDashboard();
-          }
-        })
-        .catch(function(error) {
-          showMessage((error && error.message) || 'Could not save record.', 'error');
-        })
-        .finally(function() {
-          submitBtn.disabled = false;
-          submitBtn.textContent = editingRowNumber ? 'Update Licence' : 'Save Licence';
-        });
-    });
-
-    function loadDashboard() {
-      jsonpGet('dashboard', { cacheBust: Date.now() })
-        .then(function(response) {
-          if (!response || response.success === false) {
-            throw new Error((response && response.message) || 'Could not load dashboard.');
-          }
-
-          renderCounts(response.counts || {});
-          renderStatus(normalizeStatusResponse(response.status || response));
-          renderLicenceTransactions(normalizeLicenceList(response.records || response.data || response.transactions || []));
-        })
-        .catch(function(error) {
-          document.getElementById('aboutToExpireBox').innerHTML = '<div class="empty">Could not load status.</div>';
-          document.getElementById('expiredBox').innerHTML = '<div class="empty">Could not load status.</div>';
-          document.getElementById('transactionsBody').innerHTML =
-            '<tr><td colspan="15" style="padding:12px; text-align:center;">Could not load dashboard: ' + escapeHtml((error && error.message) || 'Server error') + '<br>Open the Apps Script URL directly with ?action=health to test deployment.</td></tr>';
-        });
-    }
-
-    function renderCounts(counts) {
-      counts = counts || {};
-      document.getElementById('totalDriversBox').textContent = Number(counts.totalDrivers || 0);
-      document.getElementById('totalOtherLicenceBox').textContent = Number(counts.totalOtherLicence || 0);
-      document.getElementById('totalExpiredBox').textContent = Number(counts.totalExpired || 0);
-      document.getElementById('totalAquaDriversBox').textContent = Number(counts.totalAquaDrivers || 0);
-      document.getElementById('totalDistinctBox').textContent = Number(counts.totalDistinct || 0);
-      document.getElementById('totalOnpointBox').textContent = Number(counts.totalOnpoint || 0);
-    }
-
-    function loadTransactions() {
-      callServer('searchLicences', '')
-        .then(function(response) {
-          renderLicenceTransactions(normalizeLicenceList(response));
-        })
-        .catch(function(error) {
-          document.getElementById('transactionsBody').innerHTML =
-            '<tr><td colspan="15" style="padding:12px; text-align:center;">Could not load transactions: ' + escapeHtml((error && error.message) || 'Server error') + '</td></tr>';
-        });
-    }
-
-    function renderLicenceTransactions(results) {
-      const body = document.getElementById('transactionsBody');
-
-      if (!results || results.length === 0) {
-        transactionLicenceRecords = [];
-        body.innerHTML = '<tr><td colspan="15" style="padding:12px; text-align:center;">No transactions found on the Licence tab.</td></tr>';
-        return;
-      }
-
-      transactionLicenceRecords = results;
-      body.innerHTML = results.map(function(p, index) {
-        const licenceLink = makeLicenceLinks(p);
-        const actions = getRecordKey(p)
-          ? '<button class="action-btn edit-btn" type="button" onclick="startEdit(\'transactions\', ' + index + ')">Edit</button>' +
-            '<button class="action-btn delete-btn" type="button" onclick="deleteLicenceRecord(\'transactions\', ' + index + ')">Delete</button>'
-          : '<span class="empty">No row ID</span>';
-
-        return '<tr>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + escapeHtml(p.name) + '</td>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + escapeHtml(p.surname) + '</td>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + escapeHtml(p.licenceNumber) + '</td>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + escapeHtml(p.countryOfIssue) + '</td>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + escapeHtml(p.company) + '</td>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + escapeHtml(p.department) + '</td>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + escapeHtml(p.licenceType) + '</td>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + escapeHtml(p.validity) + '</td>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + escapeHtml(p.firstIssue) + '</td>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + escapeHtml(p.vehicleRestrictions) + '</td>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + escapeHtml(p.otherLicence) + '</td>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + licenceLink + '</td>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + escapeHtml(p.fleetCardPolicyIssuedSigned) + '</td>' +
-          '<td style="padding:10px; border:1px solid #e5e7eb;">' + escapeHtml(p.fleetPolicyIssuedSigned) + '</td>' +
-          '<td class="action-cell">' + actions + '</td>' +
-        '</tr>';
-      }).join('');
-    }
-
-
-    function loadStatus() {
-      callServer('getLicenceStatus')
-        .then(function(response) {
-          renderStatus(normalizeStatusResponse(response));
-        })
-        .catch(function() {
-          document.getElementById('aboutToExpireBox').innerHTML = '<div class="empty">Could not load status.</div>';
-          document.getElementById('expiredBox').innerHTML = '<div class="empty">Could not load status.</div>';
-        });
-    }
-
-    function searchPerson() {
-      const query = document.getElementById('searchInput').value.trim();
-      const box = document.getElementById('searchResultsBox');
-
-      if (!query) {
-        box.innerHTML = '<div class="empty">Enter a name or surname to search.</div>';
-        return;
-      }
-
-      box.innerHTML = 'Searching...';
-
-      callServer('searchLicences', query)
-        .then(function(response) {
-          renderSearchResults(normalizeLicenceList(response));
-        })
-        .catch(function(error) {
-          box.innerHTML = '<div class="empty">' + escapeHtml((error && error.message) || 'Could not search records.') + '</div>';
-        });
-    }
-
-    function jsonpGet(action, params) {
-      params = params || {};
-      return new Promise(function(resolve, reject) {
-        if (!SCRIPT_URL || SCRIPT_URL.indexOf('/exec') === -1) {
-          reject(new Error('SCRIPT_URL must be the deployed Apps Script Web App URL ending in /exec.'));
-          return;
-        }
-
-        const callbackName = 'licenceDashCb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-        const script = document.createElement('script');
-        const query = Object.keys(params).map(function(key) {
-          return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
-        }).join('&');
-        const url = SCRIPT_URL + '?action=' + encodeURIComponent(action) + '&callback=' + encodeURIComponent(callbackName) + (query ? '&' + query : '');
-
-        const timer = setTimeout(function() {
-          cleanup();
-          reject(new Error('Apps Script JSONP connection timed out. Check Web App access: Execute as Me, Anyone with the link, and deploy a New version.'));
-        }, 30000);
-
-        function cleanup() {
-          clearTimeout(timer);
-          try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
-          try { script.remove(); } catch (e) {}
-        }
-
-        window[callbackName] = function(response) {
-          cleanup();
-          resolve(response);
-        };
-
-        script.onerror = function() {
-          cleanup();
-          reject(new Error('Could not connect to Apps Script. Confirm the deployment URL and access permissions.'));
-        };
-
-        script.src = url;
-        document.body.appendChild(script);
-      });
-    }
-
-    function callServer(functionName, payload) {
-      if (window.google && google.script && google.script.run) {
-        return new Promise(function(resolve, reject) {
-          let runner = google.script.run
-            .withSuccessHandler(resolve)
-            .withFailureHandler(reject);
-
-          if (typeof payload === 'undefined') {
-            runner[functionName]();
-          } else {
-            runner[functionName](payload);
-          }
-        });
-      }
-
-      if (functionName === 'getLicenceStatus') {
-        return jsonpGet('status', { cacheBust: Date.now() });
-      }
-
-      if (functionName === 'searchLicences') {
-        return jsonpGet('search', { query: payload || '', cacheBust: Date.now() });
-      }
-
-      if (functionName === 'submitLicence' || functionName === 'updateLicence' || functionName === 'deleteLicence') {
-        const bodyPayload = Object.assign({}, payload || {});
-        if (functionName === 'updateLicence') bodyPayload.action = 'update';
-        if (functionName === 'deleteLicence') bodyPayload.action = 'delete';
-
-        return fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify(bodyPayload),
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8'
-          }
-        }).then(parseJsonResponse);
-      }
-
-      return Promise.reject(new Error('Unknown server function.'));
-    }
-
-    function parseJsonResponse(response) {
-      if (!response.ok) {
-        throw new Error('Server error: ' + response.status);
-      }
-      return response.json();
-    }
-
-    function normalizeLicenceList(response) {
-      if (Array.isArray(response)) {
-        return response;
-      }
-
-      if (response && Array.isArray(response.records)) {
-        return response.records;
-      }
-
-      if (response && Array.isArray(response.data)) {
-        return response.data;
-      }
-
-      if (response && Array.isArray(response.results)) {
-        return response.results;
-      }
-
-      if (response && response.success === false) {
-        throw new Error(response.message || 'Server returned an error.');
-      }
-
-      return [];
-    }
-
-    function normalizeStatusResponse(response) {
-      if (!response) {
-        return { aboutToExpire: [], expired: [] };
-      }
-
-      if (response.success === false) {
-        throw new Error(response.message || 'Could not load status.');
-      }
-
-      if (response.data) {
-        return response.data;
-      }
-
-      return response;
-    }
-
-    function renderStatus(data) {
-      data = data || { aboutToExpire: [], expired: [] };
-
-      // Safety filter: the backend already filters this, but this keeps the dashboard correct
-      // even if an older Apps Script deployment returns all records.
-      const aboutToExpireOnly = normalizeLicenceList(data.aboutToExpire || []).filter(function(p) {
-        const days = Number(p.daysRemaining);
-        return Number.isFinite(days) && days >= 0 && days <= 14;
-      });
-      const expiredOnly = normalizeLicenceList(data.expired || []).filter(function(p) {
-        const days = Number(p.daysRemaining);
-        return Number.isFinite(days) && days < 0;
-      });
-
-      renderPeople('aboutToExpireBox', aboutToExpireOnly, 'No licences about to expire.', true);
-      renderPeople('expiredBox', expiredOnly, 'No expired licences.', false);
-    }
-
-    function renderPeople(elementId, people, emptyText, limitAboutToExpire) {
-      const box = document.getElementById(elementId);
-
-      if (!people || people.length === 0) {
-        box.innerHTML = '<div class="empty">' + emptyText + '</div>';
-        return;
-      }
-
-      const list = limitAboutToExpire ? people.slice(0, 5) : people;
-      const extraCount = limitAboutToExpire && people.length > 5 ? people.length - 5 : 0;
-
-      box.innerHTML = list.map(function(p) {
-        return '<div class="person">' +
-          '<strong>' + escapeHtml(p.name) + ' ' + escapeHtml(p.surname) + '</strong><br>' +
-          'Licence: ' + escapeHtml(p.licenceNumber) + '<br>' +
-          'Company: ' + escapeHtml(p.company) + '<br>' +
-          'Department: ' + escapeHtml(p.department) + '<br>' +
-          'Type: ' + escapeHtml(p.licenceType) + '<br>' +
-          'Validity: ' + escapeHtml(p.validity) + '<br>' +
-          'Days remaining: ' + escapeHtml(String(p.daysRemaining)) +
-        '</div>';
-      }).join('') +
-      (extraCount ? '<button type="button" style="width:auto; margin-top:10px;" onclick="showAllAboutToExpire()">View more (' + extraCount + ' more)</button>' : '');
-    }
-
-    function showAllAboutToExpire() {
-      callServer('getLicenceStatus')
-        .then(function(response) {
-          const data = normalizeStatusResponse(response);
-          const aboutToExpireOnly = normalizeLicenceList(data.aboutToExpire || []).filter(function(p) {
-            const days = Number(p.daysRemaining);
-            return Number.isFinite(days) && days >= 0 && days <= 14;
-          });
-          renderPeople('aboutToExpireBox', aboutToExpireOnly, 'No licences about to expire.', false);
-        })
-        .catch(function() {
-          document.getElementById('aboutToExpireBox').innerHTML = '<div class="empty">Could not open full about-to-expire list.</div>';
-        });
-    }
-
-    function getRecordKey(record) {
-      return record && (record.rowNumber || record.rowIndex || record.id);
-    }
-
-    function getRecordFromSource(source, index) {
-      return source === 'search' ? searchLicenceRecords[index] : transactionLicenceRecords[index];
-    }
-
-    function startEdit(source, index) {
-      const record = getRecordFromSource(source, index);
-      const rowNumber = getRecordKey(record);
-      const form = document.getElementById('licenceForm');
-
-      if (!record || !rowNumber) {
-        showMessage('This record cannot be edited because no row identifier was returned from the sheet.', 'error');
-        return;
-      }
-
-      editingRowNumber = rowNumber;
-      editingExistingLicenceFileLink = record.licenceFileLink || '';
-      const currentBox = document.getElementById('currentLicenceFileBox');
-      if (currentBox) {
-        if (editingExistingLicenceFileLink) {
-          currentBox.innerHTML = 'Current licence file: <a href="' + escapeAttr(editingExistingLicenceFileLink) + '" target="_blank">View current file</a><br>Leave upload blank to keep this file, or choose a new file to replace it.';
-          currentBox.style.display = 'block';
-        } else {
-          currentBox.innerHTML = 'No current licence file saved. Choose a file to upload one.';
-          currentBox.style.display = 'block';
-        }
-      }
-      form.name.value = record.name || '';
-      form.surname.value = record.surname || '';
-      form.licenceNumber.value = record.licenceNumber || '';
-      form.countryOfIssue.value = record.countryOfIssue || 'South Africa';
-      form.company.value = record.company || 'Distinct';
-      form.department.value = record.department || '';
-      form.licenceType.value = record.licenceType || '';
-      form.validity.value = toDateInputValue(record.validity);
-      form.firstIssue.value = toDateInputValue(record.firstIssue);
-      form.vehicleRestrictions.value = record.vehicleRestrictions || '';
-      form.otherLicence.value = record.otherLicence || '';
-      document.getElementById('fleetCardPolicyIssuedSigned').checked = String(record.fleetCardPolicyIssuedSigned || '').trim() !== '';
-      document.getElementById('fleetPolicyIssuedSigned').checked = String(record.fleetPolicyIssuedSigned || '').trim() !== '';
-      document.getElementById('licenceUpload').value = '';
-      document.getElementById('submitBtn').textContent = 'Update Licence';
-      document.getElementById('cancelEditBtn').style.display = 'inline-block';
-      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      showMessage('Edit mode enabled. Update the details, then click Update Licence.', 'success');
-    }
-
-    function cancelEdit(showNotice) {
-      editingRowNumber = null;
-      editingExistingLicenceFileLink = '';
-      document.getElementById('submitBtn').textContent = 'Save Licence';
-      document.getElementById('cancelEditBtn').style.display = 'none';
-      const currentBox = document.getElementById('currentLicenceFileBox');
-      if (currentBox) { currentBox.style.display = 'none'; currentBox.innerHTML = ''; }
-      if (showNotice !== false) {
-        document.getElementById('licenceForm').reset();
-        document.getElementById('licenceForm').countryOfIssue.value = 'South Africa';
-        document.getElementById('licenceForm').company.value = 'Distinct';
-      }
-    }
-
-    function deleteLicenceRecord(source, index) {
-      const record = getRecordFromSource(source, index);
-      const rowNumber = getRecordKey(record);
-
-      if (!record || !rowNumber) {
-        showMessage('This record cannot be deleted because no row identifier was returned from the sheet.', 'error');
-        return;
-      }
-
-      if (!confirm('Delete licence record for ' + (record.name || '') + ' ' + (record.surname || '') + '?')) {
-        return;
-      }
-
-      callServer('deleteLicence', { rowNumber: rowNumber })
-        .then(function(result) {
-          if (!result || !result.success) {
-            showMessage((result && result.message) || 'Could not delete record.', 'error');
-            return;
-          }
-          showMessage(result.message || 'Deleted successfully.', 'success');
-          cancelEdit(false);
-          loadDashboard();
-        })
-        .catch(function(error) {
-          showMessage((error && error.message) || 'Could not delete record.', 'error');
-        });
-    }
-
-    function toDateInputValue(value) {
-      if (!value) return '';
-      const text = String(value);
-      const isoMatch = text.match(/^\d{4}-\d{2}-\d{2}/);
-      if (isoMatch) return isoMatch[0];
-      const date = new Date(text);
-      if (isNaN(date.getTime())) return '';
-      return date.toISOString().slice(0, 10);
-    }
-
-
-    function makeLicenceLinks(record) {
-      const links = [];
-      if (record && Array.isArray(record.licenceLinks)) {
-        record.licenceLinks.forEach(function(link) { if (link) links.push(link); });
-      }
-      if (record && record.licenceFileLink) {
-        String(record.licenceFileLink).split(/[\n,; ]+/).forEach(function(link) {
-          if (link && link.indexOf('http') === 0) links.push(link);
-        });
-      }
-      const unique = links.filter(function(link, index, arr) { return arr.indexOf(link) === index; });
-      if (!unique.length) return '';
-      return unique.map(function(link, index) {
-        return '<a class="view-link" href="' + escapeAttr(link) + '" target="_blank">View Licence ' + (index + 1) + '</a>';
-      }).join('');
-    }
-
-    function renderSearchResults(results) {
-      const box = document.getElementById('searchResultsBox');
-      results = normalizeLicenceList(results);
-
-      if (!results || results.length === 0) {
-        box.innerHTML = '<div class="empty">No matching licence details found.</div>';
-        return;
-      }
-
-      searchLicenceRecords = results;
-      box.innerHTML = results.map(function(p, index) {
-        const actions = getRecordKey(p)
-          ? '<div class="person-actions">' +
-            '<button class="action-btn edit-btn" type="button" onclick="startEdit(\'search\', ' + index + ')">Edit</button>' +
-            '<button class="action-btn delete-btn" type="button" onclick="deleteLicenceRecord(\'search\', ' + index + ')">Delete</button>' +
-            '</div>'
-          : '<span class="empty">No row ID</span>';
-
-        return '<div class="person">' +
-          '<strong>' + escapeHtml(p.name) + ' ' + escapeHtml(p.surname) + '</strong><br>' +
-          'Licence Number: ' + escapeHtml(p.licenceNumber) + '<br>' +
-          'Country of Issue: ' + escapeHtml(p.countryOfIssue) + '<br>' +
-          'Company: ' + escapeHtml(p.company) + '<br>' +
-          'Department: ' + escapeHtml(p.department) + '<br>' +
-          'Licence Type: ' + escapeHtml(p.licenceType) + '<br>' +
-          'Validity: ' + escapeHtml(p.validity) + '<br>' +
-          'First Issue: ' + escapeHtml(p.firstIssue) + '<br>' +
-          'Vehicle Restrictions: ' + escapeHtml(p.vehicleRestrictions) + '<br>' +
-          'Other Licence: ' + escapeHtml(p.otherLicence) + '<br>' +
-          'Licence Link: ' + makeLicenceLinks(p) + '<br>' +
-          'Fleet Card Policy: ' + escapeHtml(p.fleetCardPolicyIssuedSigned) + '<br>' +
-          'Fleet Policy: ' + escapeHtml(p.fleetPolicyIssuedSigned) + '<br>' +
-          actions +
-        '</div>';
-      }).join('');
-    }
-
-    function readLicenceFile(file) {
-      if (!file) {
-        return Promise.resolve(null);
-      }
-
-      return new Promise(function(resolve, reject) {
-        const reader = new FileReader();
-
-        reader.onload = function(event) {
-          const result = String(event.target.result || '');
-          const parts = result.split(',');
-
-          resolve({
-            name: file.name,
-            mimeType: file.type || 'application/octet-stream',
-            data: parts.length > 1 ? parts[1] : result
-          });
-        };
-
-        reader.onerror = function() {
-          reject(new Error('Could not read uploaded licence file.'));
-        };
-
-        reader.readAsDataURL(file);
-      });
-    }
-
-    function showMessage(text, type) {
-      const msg = document.getElementById('message');
-      msg.textContent = text;
-      msg.className = 'message ' + type;
-      msg.style.display = 'block';
-
-      setTimeout(function() {
-        msg.style.display = 'none';
-      }, 4000);
-    }
-
-    function escapeHtml(value) {
-      return String(value || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    function escapeAttr(value) {
-      return escapeHtml(value);
-    }
-  </script>
 </body>
 </html>
